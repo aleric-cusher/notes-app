@@ -8,14 +8,14 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import UserSerializer
 
-# Set proper permission calasses
+# Set proper permission classes
 
 @permission_classes([AllowAny])
 @api_view(['POST'])
 def login(request: HttpRequest):
     username = request.data.pop('username')
     password = request.data.pop('password')
-    user = authenticate(username, password)
+    user = authenticate(username=username, password=password)
 
     if user:
         refresh = RefreshToken.for_user(user)
@@ -26,7 +26,7 @@ def login(request: HttpRequest):
         return Response(data, status=200)
     if User.objects.filter(username=username).exists(): # check if username exists in db
         return Response({'detail': 'Wrong password! Ehhh!'}, status=406)
-    return Response({'detail': f'Cannot find {username}.'}, status=404)
+    return Response({'detail': f'Cannot find account with username: {username}.'}, status=404)
 
 
 @permission_classes([AllowAny])
