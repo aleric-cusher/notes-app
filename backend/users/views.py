@@ -85,13 +85,16 @@ class UserDetailView(views.APIView):
     def put(self, request):
         user = self.get_object(request.user.id)
         self.check_object_permissions(request, user)
+        profile_fields = [field.name for field in UserProfile._meta.fields]
+        # extracting profile from request.data
+        profile_data = {field: request.data[field] for field in request.data.keys() if field in profile_fields}
+        print(profile_data)
 
         user_serializer = UserSerializer(user, data=request.data, partial=True)
         user_serializer.is_valid(raise_exception=True)
         user_serializer.save()
 
-        if 'profile' in request.data:
-            profile_data = request.data['profile']
+        if profile_data:
             try:
                 profile = user.profile
             except (UserProfile.DoesNotExist, AttributeError):
