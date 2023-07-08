@@ -1,62 +1,113 @@
-from django.shortcuts import get_object_or_404
-from django.contrib.auth.models import User
-from django.http.request import HttpRequest
-from django.contrib.auth import authenticate
-from rest_framework.decorators import permission_classes, parser_classes, api_view
-from rest_framework.permissions import AllowAny, IsAdminUser
-from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer
-
-# Set proper permission classes
-
-@permission_classes([AllowAny])
-@api_view(['POST'])
-def login(request: HttpRequest):
-    username = request.data.pop('username')
-    password = request.data.pop('password')
-    user = authenticate(username=username, password=password)
-
-    if user:
-        refresh = RefreshToken.for_user(user)
-        data = {
-            'access': str(refresh.access_token),
-            'refresh': str(refresh)
-        }
-        return Response(data, status=200)
-    if User.objects.filter(username=username).exists(): # check if username exists in db
-        return Response({'detail': 'Wrong password! Ehhh!'}, status=406)
-    return Response({'detail': f'Cannot find account with username: {username}.'}, status=404)
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from rest_framework.response import Response
+from rest_framework import views
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .models import UserProfile
+from .permissions import IsOwner
+from .serializers import UserSerializer, UserProfileSerializer
 
 
-@permission_classes([AllowAny])
-@api_view(['POST'])
-def create_user(request):
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=200)
-    return Response(serializer.errors, status=400)
+class RegisterUser(views.APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            refresh = RefreshToken.for_user(user)
+            tokens = {
+                'access': str(refresh.access_token),
+                'refresh': str(refresh)
+            }
+            return Response(tokens, status=201)
+        return Response(serializer.errors, status=400)
 
 
-@permission_classes([AllowAny])
-@api_view(['DELETE'])
-def user_detail(request, username):
-    if request.method == 'DELETE':
-        user = get_object_or_404(User, username=username)
+class CheckUsernameAvailiblity(views.APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        if username := request.data.pop('username', None):
+            if User.objects.filter(username=username).exists():
+                return Response({"detail": "Username taken", "available": False}, status=200)
+            return Response({"detail": "Username available", "available": True}, status=200)
+        
+        return Response({"detail": "Username not specified"}, status=400)
+
+
+class LoginUser(views.APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.pop('username')
+        password = request.data.pop('password')
+        user = authenticate(username=username, password=password)
         if user:
-            user.delete()
-            return Response(status=202)
-        return Response({'detail': 'Not found'}, status=404)
-    
-    else:
-        return Response({'detail': f'{request.method} not allowed.'}, status=405)
-    
+            refresh = RefreshToken.for_user(user)
+            tokens = {
+                'access': str(refresh.access_token),
+                'refresh': str(refresh)
+            }
+            return Response(tokens, status=200)
+        if User.objects.filter(username=username).exists(): # check if username exists in db
+            return Response({'detail': 'Wrong password! Ehhh!'}, status=406)
+        return Response({'detail': f'Cannot find account with username: {username}.'}, status=404)
 
-@permission_classes([AllowAny])
-@api_view(['GET'])
-def user_list(request):
-    users = User.objects.all()
-    if users:
-        return Response(users, status=200)
-    return Response({'detail': 'Not found.'}, status=404)
+# @permission_classes([AllowAny])
+# @api_view(['DELETE'])
+# def user_detail(request, username):
+#     if request.method == 'DELETE':
+#         user = get_object_or_404(User, username=username)
+#         if user:
+#             user.delete()
+#             return Response(status=202)
+#         return Response({'detail': 'Not found'}, status=404)
+    
+#     else:
+#         return Response({'detail': f'{request.method} not allowed.'}, status=405)
+
+class UserDetailView(views.APIView):
+    permission_classes = [IsAuthenticated & IsOwner]
+
+    def get_object(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=404)
+
+    def get(self, request):
+        user = self.get_object(request.user.id)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+    def put(self, request):
+        user = self.get_object(request.user.id)
+        self.check_object_permissions(request, user)
+
+        user_serializer = UserSerializer(user, data=request.data, partial=True)
+        user_serializer.is_valid(raise_exception=True)
+        user_serializer.save()
+
+        if 'profile' in request.data:
+            profile_data = request.data['profile']
+            try:
+                profile = user.profile
+            except (UserProfile.DoesNotExist, AttributeError):
+                profile = UserProfile(user=user)
+
+            profile_serializer = UserProfileSerializer(profile, data=profile_data, partial=True)
+            profile_serializer.is_valid(raise_exception=True)
+            profile_serializer.save()
+
+        return Response(user_serializer.data)
+
+    def delete(self, request):
+        user = self.get_object(request.user.id)
+        self.check_object_permissions(request, user)
+        user.delete()
+        return Response(status=204)
+
+
+

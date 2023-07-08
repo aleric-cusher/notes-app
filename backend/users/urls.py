@@ -12,15 +12,19 @@
 #       delete-> delete user(Owner, Admin)
 
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import create_user, user_detail, login, user_list
+from rest_framework_simplejwt.views import TokenBlacklistView, TokenRefreshView
+from .views import RegisterUser, CheckUsernameAvailiblity, LoginUser, UserDetailView
 
 urlpatterns = [
-    path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('auth/login/', login, name='login'),
-    path('auth/register/', create_user, name='register'),
+    path('register/', RegisterUser.as_view(), name='register-user'),
+    path('username-available/', CheckUsernameAvailiblity.as_view(), name='username-available'),
 
-    path('users/', user_list, name='user-list'),
-    path('users/<str:username>/', user_detail, name='user-detail'),
+    path('login/', LoginUser.as_view(), name='login-user'),
+    path('logout/', TokenBlacklistView.as_view(), name='logout'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
+
+    path('profile/', UserDetailView.as_view(), name='user-profile'),
+
+    # path('change-password/', , name='change-password')
     
 ]
