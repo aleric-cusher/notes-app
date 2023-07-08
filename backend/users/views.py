@@ -56,18 +56,6 @@ class LoginUser(views.APIView):
             return Response({'detail': 'Wrong password! Ehhh!'}, status=406)
         return Response({'detail': f'Cannot find account with username: {username}.'}, status=404)
 
-# @permission_classes([AllowAny])
-# @api_view(['DELETE'])
-# def user_detail(request, username):
-#     if request.method == 'DELETE':
-#         user = get_object_or_404(User, username=username)
-#         if user:
-#             user.delete()
-#             return Response(status=202)
-#         return Response({'detail': 'Not found'}, status=404)
-    
-#     else:
-#         return Response({'detail': f'{request.method} not allowed.'}, status=405)
 
 class UserDetailView(views.APIView):
     permission_classes = [IsAuthenticated & IsOwner]
@@ -81,6 +69,7 @@ class UserDetailView(views.APIView):
 
     def get(self, request):
         user = self.get_object(request.user.id)
+        self.check_object_permissions(request, user)
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
@@ -115,4 +104,32 @@ class UserDetailView(views.APIView):
         return Response(status=204)
 
 
+class PasswordChangeView(views.APIView):
+    permission_classes = [IsAuthenticated & IsOwner]
+
+    def get_object(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=404)
+        
+    def post(self, request):
+        user = self.get_object(request.user.id)
+        self.check_object_permissions(request, user)
+
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+
+        if not current_password or not new_password:
+            return Response({'detail': 'Missing data.'}, status=400)
+        
+        if not user.check_password(current_password):
+            return Response({'detail': 'Invalid password'}, status=401)
+    
+        user.set_password(new_password)
+        user.save()
+        return Response({'detail': 'Password changed successfully'}, status=200)
+        
+        
+        
 

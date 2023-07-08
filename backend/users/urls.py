@@ -13,7 +13,7 @@
 
 from django.urls import path
 from rest_framework_simplejwt.views import TokenBlacklistView, TokenRefreshView
-from .views import RegisterUser, CheckUsernameAvailiblity, LoginUser, UserDetailView
+from .views import RegisterUser, CheckUsernameAvailiblity, LoginUser, UserDetailView, PasswordChangeView
 
 urlpatterns = [
     path('register/', RegisterUser.as_view(), name='register-user'),
@@ -25,6 +25,6 @@ urlpatterns = [
 
     path('profile/', UserDetailView.as_view(), name='user-profile'),
 
-    # path('change-password/', , name='change-password')
+    path('change-password/', PasswordChangeView.as_view(), name='change-password')
     
 ]
