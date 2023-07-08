@@ -173,3 +173,8 @@ SIMPLE_JWT = {
 
     "TOKEN_OBTAIN_SERIALIZER": "users.serializers.CustomTokenObtainPairSerializer",
 }
+
+# Media
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
