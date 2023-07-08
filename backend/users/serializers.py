@@ -1,5 +1,8 @@
+import random
+import string
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+from rest_framework.exceptions import UnsupportedMediaType
 from .models import UserProfile
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -21,6 +24,26 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = '__all__'
+    
+    def generate_random_filename(self, length=15):
+        characters = string.ascii_letters + string.digits
+        return ''.join(random.choice(characters) for _ in range(length))
+
+    def update(self, instance, validated_data):
+        if 'profile_picture' in validated_data:
+            supported_formats = ['png', 'jpeg', 'jpg', 'apng', 'avif', 'gif', 'svg', 'webp', 'apng']
+            org_name = validated_data['profile_picture'].name
+            file_format = org_name.split('.')[-1].lower()
+            if not file_format in supported_formats:
+                raise UnsupportedMediaType(file_format, detail='Unsupported file format.')
+            
+            custom_file_name = self.generate_random_filename()
+            while UserProfile.objects.filter(profile_picture=f'profile_pics/{custom_file_name}').exists():
+                custom_file_name = self.generate_random_filename()
+            
+            validated_data['profile_picture'].name = f'{custom_file_name}.{file_format}'
+
+        return super().update(instance, validated_data)
 
 
 class UserSerializer(serializers.ModelSerializer):
