@@ -1,16 +1,3 @@
-
-# todo:
-# - `login/`: post-> get user tokens(Anonymous)
-
-# - `register/`: post-> create user(Anonymous)
-
-# - `users/`: get-> list of users(Admin only)
-
-# - `users/<username>/`:
-#       get-> detail user(Owner, Admin),
-#       put-> edit details(Owner, Admin),
-#       delete-> delete user(Owner, Admin)
-
 from django.urls import path
 from rest_framework_simplejwt.views import TokenBlacklistView, TokenRefreshView
 from .views import RegisterUser, CheckUsernameAvailiblity, LoginUser, UserDetailView, PasswordChangeView

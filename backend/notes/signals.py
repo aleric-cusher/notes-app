@@ -6,7 +6,7 @@ from .utils import generate_slug
 
 for model in [Tag, Color, Note]:
     @receiver(pre_save, sender=model)
-    def set_id(sender, instance, **kwargs):
+    def set_slug(sender, instance, **kwargs):
         print('making slug')
         slug = generate_slug()
         while sender.objects.filter(slug=slug).exists():
