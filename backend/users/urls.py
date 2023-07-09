@@ -26,5 +26,4 @@ urlpatterns = [
     path('profile/', UserDetailView.as_view(), name='user-profile'),
 
     path('change-password/', PasswordChangeView.as_view(), name='change-password')
-    
 ]

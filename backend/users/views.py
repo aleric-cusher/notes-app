@@ -70,31 +70,30 @@ class UserDetailView(views.APIView):
     def get(self, request):
         user = self.get_object(request.user.id)
         self.check_object_permissions(request, user)
-        serializer = UserSerializer(user)
+        serializer = UserSerializer(user, context={'request': request})
         return Response(serializer.data)
 
     def put(self, request):
+        # todo: handle for when the user has a profile picture and wants to delete it
         user = self.get_object(request.user.id)
         self.check_object_permissions(request, user)
-
         profile_fields = [field.name for field in UserProfile._meta.fields]
         # extracting profile from request.data
         profile_data = {field: request.data[field] for field in request.data.keys() if field in profile_fields}
 
-        user_serializer = UserSerializer(user, data=request.data, partial=True)
+        user_serializer = UserSerializer(user, data=request.data, partial=True, context = {'request': request})
         user_serializer.is_valid(raise_exception=True)
-        user_serializer.save()
+        instance = user_serializer.save()
 
         if profile_data:
+            print(profile_data)
             try:
-                profile = user.profile
+                profile = UserProfile.objects.get(user=instance)
+                profile_serializer = UserProfileSerializer(profile, data=profile_data, partial=True)
+                profile_serializer.is_valid(raise_exception=True)
+                profile_serializer.save()
             except (UserProfile.DoesNotExist, AttributeError):
-                profile = UserProfile(user=user)
-
-            profile_serializer = UserProfileSerializer(profile, data=profile_data, partial=True)
-            profile_serializer.is_valid(raise_exception=True)
-            profile_serializer.save()
-
+                profile = UserProfile.objects.create(user=instance, **profile_data)
         return Response(user_serializer.data)
 
     def delete(self, request):
