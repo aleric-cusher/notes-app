@@ -1,12 +1,13 @@
 from django.urls import path
+from .views import ColorListCreateView, TagListCreateView, NoteListCreateView
 
 urlpatterns = [
-    # path('tags/', , name='tags-list'),
+    path('tags/', TagListCreateView.as_view(), name='tags-list'),
     # path('tags/<str:slug>/', , name='tags-detail'),
 
-    # path('colors/', , name='colors-list'),
+    path('colors/', ColorListCreateView.as_view(), name='colors-list'),
     # path('colors/<str:slug>/', , name='colors-detail'),
 
-    # path('', , name='notes-list'),
+    path('', NoteListCreateView.as_view(), name='notes-list'),
     # path('<str:slug>/', , name='notes-detail'),
 ]
