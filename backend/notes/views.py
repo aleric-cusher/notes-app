@@ -5,6 +5,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from .models import Note, Color, Tag
 from .serializers import NoteSerializer, NoteCreateUpdateSerializer, ColorSerializer, TagSerializer
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 import json
 import base64
 
@@ -144,3 +145,66 @@ class NoteListCreateView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+class TagDetailView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TagSerializer
+    
+    def get_serializer(self, *args, **kwargs):
+        serzer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serzer_class(*args, **kwargs)
+
+    def get_queryset(self, slug):
+        tag = get_object_or_404(Tag, user=self.request.user, slug=slug)
+        return tag
+    
+    def get(self, request, slug):
+        tag = self.get_queryset(slug)
+        serializer = self.get_serializer(tag)
+        return Response(serializer.data)
+    
+    def put(self, request, slug):
+        tag = self.get_queryset(slug)
+        serializer = self.get_serializer(tag, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+    
+    def delete(self, request, slug):
+        tag = self.get_queryset(slug)
+        tag.delete()
+        return Response(status=204)
+
+
+class ColorDetailView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ColorSerializer
+    
+    def get_serializer(self, *args, **kwargs):
+        serzer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serzer_class(*args, **kwargs)
+
+    def get_queryset(self, slug):
+        color = get_object_or_404(Color, user=self.request.user, slug=slug)
+        return color
+    
+    def get(self, request, slug):
+        color = self.get_queryset(slug)
+        serializer = self.get_serializer(color)
+        return Response(serializer.data)
+    
+    def put(self, request, slug):
+        color = self.get_queryset(slug)
+        serializer = self.get_serializer(color, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+    
+    def delete(self, request, slug):
+        color = self.get_queryset(slug)
+        color.delete()
+        return Response(status=204)
+        

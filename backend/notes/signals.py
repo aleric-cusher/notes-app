@@ -5,12 +5,14 @@ from .models import Tag, Color, Note
 from .utils import generate_slug
 
 for model in [Tag, Color, Note]:
-    @receiver(pre_save, sender=model)
-    def set_slug(sender, instance, **kwargs):
-        slug = generate_slug()
-        while sender.objects.filter(slug=slug).exists():
+    @receiver(post_save, sender=model)
+    def set_slug(sender, instance, created, **kwargs):
+        if created:
             slug = generate_slug()
-        instance.slug = slug
+            while sender.objects.filter(slug=slug).exists():
+                slug = generate_slug()
+            instance.slug = slug
+            instance.save()
 
 # @receiver(post_save, sender=User)
 # def create_default_colors_and_tags(sender, instance, created, **kwargs):

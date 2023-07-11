@@ -16,7 +16,7 @@ class ColorSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context.get('request')
-        color = self.Meta.objects.create(user=request.user, **validated_data)
+        color = self.Meta.model.objects.create(user=request.user, **validated_data)
         return color
 
     def to_representation(self, instance):
