@@ -93,8 +93,6 @@ class NoteListCreateView(generics.GenericAPIView):
         except:
             return {'detail': 'Query param json decode error, please check param'}, 400
 
-        print(filters)
-        
         created_to = filters.get('created', {}).get('to')
         created_from = filters.get('created', {}).get('from')
         modified_to = filters.get('modified', {}).get('to')
