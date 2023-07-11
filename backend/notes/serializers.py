@@ -1,6 +1,7 @@
 from .models import Color, Tag, Note
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound
+from .utils import create_url
 
 
 class ColorSerializer(serializers.ModelSerializer):
@@ -18,6 +19,17 @@ class ColorSerializer(serializers.ModelSerializer):
         color = self.Meta.objects.create(user=request.user, **validated_data)
         return color
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        request = self.context['request']
+        filter_object = {
+            'colors': [instance.slug]
+        }
+        
+        url = create_url(request, filter_object, 'filters', 'notes-list')
+        
+        representation['url'] = url
+        return representation
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -34,6 +46,18 @@ class TagSerializer(serializers.ModelSerializer):
         tag = self.Meta.model.objects.create(user=request.user, **validated_data)
         return tag
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        request = self.context['request']
+        filter_object = {
+            'tags': [instance.slug]
+        }
+        
+        url = create_url(request, filter_object, 'filters', 'notes-list')
+        
+        representation['url'] = url
+        return representation
+
 
 class NoteSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, required=False)
@@ -46,6 +70,7 @@ class NoteSerializer(serializers.ModelSerializer):
             'slug': {'read_only': True},
             'user': {'write_only': True, 'required': False}
         }
+
 
 class NoteCreateUpdateSerializer(serializers.ModelSerializer):
     tags = serializers.SlugRelatedField(

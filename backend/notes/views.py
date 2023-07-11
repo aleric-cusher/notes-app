@@ -9,33 +9,6 @@ import json
 import base64
 
 
-class ColorListCreateView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = ColorSerializer
-    pagination_class = LimitOffsetPagination
-
-    def get_queryset(self):
-        colors = Color.objects.filter(user=self.request.user)
-        return colors
-    
-    def get_serializer(self, *args, **kwargs):
-        serzer_class = self.get_serializer_class()
-        kwargs['context'] = self.get_serializer_context()
-        return serzer_class(*args, **kwargs)
-
-    def get(self, request):
-        colors = self.get_queryset()
-        serializer = self.get_serializer(colors, many=True)
-        paginated = self.get_paginated_response(self.paginate_queryset(serializer.data))
-        return paginated
-
-    def post(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
-
 class TagListCreateView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = TagSerializer
@@ -53,6 +26,33 @@ class TagListCreateView(generics.GenericAPIView):
     def get(self, request):
         tags = self.get_queryset()
         serializer = self.get_serializer(tags, many=True)
+        paginated = self.get_paginated_response(self.paginate_queryset(serializer.data))
+        return paginated
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
+class ColorListCreateView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ColorSerializer
+    pagination_class = LimitOffsetPagination
+
+    def get_queryset(self):
+        colors = Color.objects.filter(user=self.request.user)
+        return colors
+    
+    def get_serializer(self, *args, **kwargs):
+        serzer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serzer_class(*args, **kwargs)
+
+    def get(self, request):
+        colors = self.get_queryset()
+        serializer = self.get_serializer(colors, many=True)
         paginated = self.get_paginated_response(self.paginate_queryset(serializer.data))
         return paginated
 
