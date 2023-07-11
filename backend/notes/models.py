@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import User
 
 # Create your models here.
@@ -25,3 +26,10 @@ class Note(models.Model):
     tags = models.ManyToManyField(Tag)
     color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField()
+    archived = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        self.modified = timezone.now()
+        super().save(*args, **kwargs)
