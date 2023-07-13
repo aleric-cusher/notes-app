@@ -34,7 +34,7 @@ class TagListCreateView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data)
+        return Response(serializer.data, status=201)
 
 
 class ColorListCreateView(generics.GenericAPIView):
@@ -61,7 +61,7 @@ class ColorListCreateView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data)
+        return Response(serializer.data, status=201)
 
 
 class NoteListCreateView(generics.GenericAPIView):
@@ -143,7 +143,7 @@ class NoteListCreateView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
-        return Response(NoteSerializer(instance, context={'request': request}).data)
+        return Response(NoteSerializer(instance, context={'request': request}).data, status=201)
 
 
 class TagDetailView(generics.GenericAPIView):

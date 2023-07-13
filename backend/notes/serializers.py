@@ -104,10 +104,10 @@ class NoteCreateUpdateSerializer(serializers.ModelSerializer):
         note = Note.objects.create(user=request.user, **validated_data)
 
         if tags:
-            if tags in Tag.objects.filter(user=request.user):
-                note.tags.set(tags)
-            else:
-                raise NotFound('Tags need to be created before assignment')
+            for tag in tags:
+                if tag not in Tag.objects.filter(user=request.user):
+                    raise NotFound('Tags need to be created before assignment')
+            note.tags.set(tags)
 
         if color:
             if color in Color.objects.filter(user=request.user):
