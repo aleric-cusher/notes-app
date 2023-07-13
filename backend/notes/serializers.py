@@ -72,6 +72,7 @@ class NoteSerializer(serializers.ModelSerializer):
         }
 
 
+
 class NoteCreateUpdateSerializer(serializers.ModelSerializer):
     tags = serializers.SlugRelatedField(
         slug_field='slug',
@@ -88,10 +89,12 @@ class NoteCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Note
-        fields = ['slug', 'title', 'content', 'tags', 'color', 'user']
+        fields = ['slug', 'title', 'content', 'tags', 'color', 'user', 'archived', 'created_at', 'modified_at']
+        read_only_fields = ['slug', 'modified_at', 'created_at']
         extra_kwargs = {
             'slug': {'read_only': True},
-            'user': {'write_only': True, 'required': False}
+            'user': {'write_only': True, 'required': False},
+            'archived': {'required': False}
         }
 
     def create(self, validated_data):
@@ -115,5 +118,15 @@ class NoteCreateUpdateSerializer(serializers.ModelSerializer):
 
         note.save()
         return note
-
+    
+    def update(self, instance, validated_data):
+        if tags := validated_data.pop('tags', None):
+            instance.tags.set(tags)
+        if color := validated_data.pop('color', None):
+            instance.color = color
+        
+        return super().update(instance, validated_data)
+        
+        
+        
     

@@ -66,7 +66,6 @@ class ColorListCreateView(generics.GenericAPIView):
 
 class NoteListCreateView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = NoteSerializer
     pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
@@ -143,8 +142,8 @@ class NoteListCreateView(generics.GenericAPIView):
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+        instance = serializer.save()
+        return Response(NoteSerializer(instance, context={'request': request}).data)
 
 
 class TagDetailView(generics.GenericAPIView):
@@ -208,3 +207,37 @@ class ColorDetailView(generics.GenericAPIView):
         color.delete()
         return Response(status=204)
         
+        
+class NoteDetailView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.request.method == 'PUT':
+            return NoteCreateUpdateSerializer
+        return NoteSerializer
+    
+    def get_serializer(self, *args, **kwargs):
+        serzer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serzer_class(*args, **kwargs)
+
+    def get_queryset(self, slug):
+        note = get_object_or_404(Note, user=self.request.user, slug=slug)
+        return note
+    
+    def get(self, request, slug):
+        note = self.get_queryset(slug)
+        serializer = self.get_serializer(note)
+        return Response(serializer.data)
+    
+    def put(self, request, slug):
+        note = self.get_queryset(slug)
+        serializer = self.get_serializer(note, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        return Response(NoteSerializer(instance, context={'request': request}).data)
+    
+    def delete(self, request, slug):
+        note = self.get_queryset(slug)
+        note.delete()
+        return Response(status=204)

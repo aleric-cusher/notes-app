@@ -3,8 +3,8 @@ from .views import (ColorListCreateView,
                     TagListCreateView,
                     NoteListCreateView,
                     TagDetailView,
-                    ColorDetailView
-                   )
+                    ColorDetailView,
+                    NoteDetailView)
 
 urlpatterns = [
     path('tags/', TagListCreateView.as_view(), name='tags-list'),
@@ -14,5 +14,5 @@ urlpatterns = [
     path('colors/<str:slug>/', ColorDetailView.as_view(), name='colors-detail'),
 
     path('', NoteListCreateView.as_view(), name='notes-list'),
-    # path('<str:slug>/', , name='notes-detail'),
+    path('<str:slug>/', NoteDetailView.as_view(), name='notes-detail'),
 ]

@@ -31,5 +31,5 @@ class Note(models.Model):
     archived = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        self.modified = timezone.now()
+        self.modified_at = timezone.now()
         super().save(*args, **kwargs)
