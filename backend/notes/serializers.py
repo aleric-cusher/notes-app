@@ -26,7 +26,7 @@ class ColorSerializer(serializers.ModelSerializer):
             'colors': [instance.slug]
         }
         
-        url = create_url(request, filter_object, 'filters', 'notes-list')
+        url = create_url(request, filter_object, 'filters', 'note-list-create')
         
         representation['url'] = url
         return representation
@@ -53,7 +53,7 @@ class TagSerializer(serializers.ModelSerializer):
             'tags': [instance.slug]
         }
         
-        url = create_url(request, filter_object, 'filters', 'notes-list')
+        url = create_url(request, filter_object, 'filters', 'note-list-create')
         
         representation['url'] = url
         return representation
@@ -102,7 +102,6 @@ class NoteCreateUpdateSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags', None)
         color = validated_data.pop('color', None)
         note = Note.objects.create(user=request.user, **validated_data)
-        print(tags, color)
 
         if tags:
             if tags in Tag.objects.filter(user=request.user):

@@ -86,7 +86,6 @@ class UserDetailView(views.APIView):
         instance = user_serializer.save()
 
         if profile_data:
-            print(profile_data)
             try:
                 profile = UserProfile.objects.get(user=instance)
                 profile_serializer = UserProfileSerializer(profile, data=profile_data, partial=True)

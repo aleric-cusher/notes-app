@@ -206,8 +206,8 @@ class ColorDetailView(generics.GenericAPIView):
         color = self.get_queryset(slug)
         color.delete()
         return Response(status=204)
-        
-        
+
+
 class NoteDetailView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     
@@ -241,3 +241,4 @@ class NoteDetailView(generics.GenericAPIView):
         note = self.get_queryset(slug)
         note.delete()
         return Response(status=204)
+
